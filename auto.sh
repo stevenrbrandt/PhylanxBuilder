@@ -1,19 +1,24 @@
 #!/bin/bash
+
+# Configuration
+export INSTALL_DIR=$HOME/phylanx/devenv
+export EMAIL=sbrandt@cct.lsu.edu
+export DOCKER_HUB_ACCT=stevenrbrandt
+
 source ~/.bashrc
 set -e
 set -x
-cd $HOME/phylanx/devenv
+cd $INSTALL_DIR
 docker pull fedora
-#docker-compose build --no-cache
 docker build --no-cache -f phylanx.devenv -t stevenrbrandt/phylanx.devenv .
 docker build -f test.docker -t phylanx-test .
 docker run --rm phylanx-test cat test-out.txt > test-out.txt
 python3 parse.py 
-echo 'sbrandt@cct.lsu.edu' > email-body-1.html
+echo $EMAIL > email-body-1.html
 echo 'Phylanx Build Status' >> email-body-1.html
 if [ $? = 0 ]
 then
-  docker tag stevenrbrandt/phylanx.devenv:latest stevenrbrandt/phylanx.devenv:working
+  docker tag $DOCKER_HUB_ACCT/phylanx.devenv:latest $DOCKER_HUB_ACCT/phylanx.devenv:working
   bash push.sh
   set +e
   docker stop devenv

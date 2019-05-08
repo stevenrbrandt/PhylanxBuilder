@@ -1,3 +1,3 @@
-#docker-compose push
-docker push stevenrbrandt/phylanx.devenv:working
-ssh -p 8000 rostam singularity build images/phylanx-devenv.simg docker://stevenrbrandt/phylanx.devenv:working
+#!/bin/bash
+docker push $DOCKER_HUB_ACCT/phylanx.devenv:working
+ssh -p 8000 rostam singularity build images/phylanx-devenv.simg docker://$DOCKER_HUB_ACCT/phylanx.devenv:working
