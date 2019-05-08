@@ -1,0 +1,58 @@
+FROM fedora
+RUN yum install -y gcc-c++ gcc make cmake git \
+    bzip2 hwloc-devel blas blas-devel lapack lapack-devel boost-devel \
+    libatomic which compat-openssl10 vim-enhanced wget zlib-devel \
+    python3-flake8 gdb sudo
+
+ENV PYVER 3.6.7
+RUN wget https://www.python.org/ftp/python/${PYVER}/Python-${PYVER}.tgz
+RUN tar xf Python-${PYVER}.tgz
+WORKDIR /Python-${PYVER}
+RUN dnf install -y openssl-devel
+RUN ./configure
+RUN make -j 20 install
+RUN pip3 install numpy
+RUN pip3 install tensorflow
+RUN pip3 install keras
+WORKDIR /
+
+RUN git clone https://github.com/STEllAR-GROUP/hpx.git && \
+    mkdir -p /hpx/build && \
+    cd /hpx/build && \
+    cmake -DCMAKE_BUILD_TYPE=Debug \
+      -DHPX_WITH_MALLOC=system \
+      -DHPX_WITH_MORE_THAN_64_THREADS=ON \
+      -DHPX_WITH_MAX_CPU_COUNT=80 \
+      -DHPX_WITH_EXAMPLES=Off \
+      .. && \
+    make -j 20 install 
+
+RUN pip3 install pytest
+RUN git clone --depth 1 https://github.com/pybind/pybind11.git && \
+    mkdir -p /pybind11/build && \
+    cd /pybind11/build && \
+    cmake -DCMAKE_BUILD_TYPE=Debug -DPYBIND11_PYTHON_VERSION=${PYVER} .. && \
+    make -j 20 install 
+
+RUN git clone --depth 1 https://bitbucket.org/blaze-lib/blaze.git && \
+    mkdir -p /blaze/build && \
+    cd /blaze/build && \
+    cmake -DCMAKE_BUILD_TYPE=Debug -DBLAZE_SMP_THREADS=C++11 .. && \
+    make -j 20 install
+
+RUN git clone --depth 1 https://github.com/STEllAR-GROUP/blaze_tensor.git && \
+    mkdir -p /blaze_tensor/build && \
+    cd /blaze_tensor/build && \
+    cmake -DCMAKE_BUILD_TYPE=Debug .. && \
+    make -j 20 install 
+
+COPY build.sh /usr/local/bin/build.sh
+RUN chmod +x /usr/local/bin/build.sh
+
+RUN echo "ALL            ALL = (ALL) NOPASSWD: ALL" >> /etc/sudoers
+COPY phylanx.devenv /Dockerfile
+RUN useradd -m jovyan
+USER jovyan
+WORKDIR /home/jovyan
+COPY bash.sh /home/jovyan/.bashrc
+CMD ["sleep","infinity"]
