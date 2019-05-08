@@ -33,13 +33,7 @@ cd $INSTALL_DIR
 docker pull fedora
 docker build --no-cache --build-arg CPUS=$CPUS -f phylanx.devenv -t ${DOCKER_HUB_ACCT}phylanx.devenv .
 
-cat > test.docker <<EOF
-FROM ${DOCKER_HUB_ACCT}phylanx.devenv
-RUN build.sh install tests > test-out.txt 2>&1
-COPY versions.sh .
-RUN bash versions.sh >> test-out.txt
-EOF
-docker build -f test.docker -t phylanx-test .
+docker build --build-arg IMAGE=${DOCKER_HUB_ACCT}phylanx.devenv -f test.docker -t phylanx-test .
 docker run --rm phylanx-test cat test-out.txt > test-out.txt
 python3 parse.py 
 echo $EMAIL > email-body-1.html

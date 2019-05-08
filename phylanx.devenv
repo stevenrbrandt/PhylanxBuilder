@@ -4,6 +4,7 @@ RUN yum install -y gcc-c++ gcc make cmake git \
     libatomic which compat-openssl10 vim-enhanced wget zlib-devel \
     python3-flake8 gdb sudo
 
+ARG CPUS
 ENV PYVER 3.6.7
 RUN wget https://www.python.org/ftp/python/${PYVER}/Python-${PYVER}.tgz
 RUN tar xf Python-${PYVER}.tgz

@@ -1,0 +1,5 @@
+ARG IMAGE
+FROM $IMAGE
+RUN build.sh install tests > test-out.txt 2>&1
+COPY versions.sh .
+RUN bash versions.sh >> test-out.txt
