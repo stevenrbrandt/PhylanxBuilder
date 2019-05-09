@@ -2,7 +2,7 @@
 
 if [ "$DOCKER_HUB_ACCT" != "" ]
 then
-  echo docker push ${DOCKER_HUB_ACCT}phylanx.devenv:working
+  docker push ${DOCKER_HUB_ACCT}phylanx.devenv:working
 fi
 
 # Push to remote machine if there is one.
