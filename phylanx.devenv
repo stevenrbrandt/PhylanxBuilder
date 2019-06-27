@@ -2,9 +2,11 @@ FROM fedora
 RUN yum install -y gcc-c++ gcc make cmake git \
     bzip2 hwloc-devel blas blas-devel lapack lapack-devel boost-devel \
     libatomic which compat-openssl10 vim-enhanced wget zlib-devel \
-    python3-flake8 gdb sudo
+    python3-flake8 gdb sudo python36 openmpi-devel
 
 ARG CPUS
+RUN ln -s /usr/lib64/openmpi/lib/libmpi_cxx.so /usr/lib64/openmpi/lib/libmpi_cxx.so.1
+RUN ln -s /usr/lib64/openmpi/lib/libmpi.so /usr/lib64/openmpi/lib/libmpi.so.12
 ENV PYVER 3.6.7
 RUN wget https://www.python.org/ftp/python/${PYVER}/Python-${PYVER}.tgz
 RUN tar xf Python-${PYVER}.tgz
@@ -15,6 +17,7 @@ RUN make -j ${CPUS} install
 RUN pip3 install numpy
 RUN pip3 install tensorflow
 RUN pip3 install keras
+RUN pip3 install CNTK
 WORKDIR /
 
 RUN git clone https://github.com/STEllAR-GROUP/hpx.git && \
@@ -55,5 +58,6 @@ COPY phylanx.devenv /Dockerfile
 RUN useradd -m jovyan
 USER jovyan
 WORKDIR /home/jovyan
+ENV LD_LIBRARY_PATH /home/jovyan/install/phylanx/lib64:/usr/local/lib64:/home/jovyan/install/phylanx/lib/phylanx:/usr/lib64/openmpi/lib
 COPY bash.sh /home/jovyan/.bashrc
 CMD ["sleep","infinity"]
