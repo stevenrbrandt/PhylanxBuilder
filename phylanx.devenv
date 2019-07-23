@@ -14,10 +14,11 @@ WORKDIR /Python-${PYVER}
 RUN dnf install -y openssl-devel
 RUN ./configure
 RUN make -j ${CPUS} install
-RUN pip3 install numpy
-RUN pip3 install tensorflow
-RUN pip3 install keras
-RUN pip3 install CNTK
+RUN pip3 install --trusted-host pypi.org --trusted-host files.pythonhosted.org numpy tensorflow keras CNTK pytest
+RUN pip3 install numpy tensorflow keras CNTK pytest
+#RUN pip3 install tensorflow
+#RUN pip3 install keras
+#RUN pip3 install CNTK
 WORKDIR /
 
 RUN git clone https://github.com/STEllAR-GROUP/hpx.git && \
@@ -31,14 +32,16 @@ RUN git clone https://github.com/STEllAR-GROUP/hpx.git && \
       .. && \
     make -j ${CPUS} install 
 
-RUN pip3 install pytest
+#RUN pip3 install pytest
 RUN git clone --depth 1 https://github.com/pybind/pybind11.git && \
     mkdir -p /pybind11/build && \
     cd /pybind11/build && \
     cmake -DCMAKE_BUILD_TYPE=Debug -DPYBIND11_PYTHON_VERSION=${PYVER} .. && \
     make -j ${CPUS} install 
 
-RUN git clone --depth 1 https://bitbucket.org/blaze-lib/blaze.git && \
+RUN git clone https://bitbucket.org/blaze-lib/blaze.git && \
+    cd /blaze && \
+    git checkout 48460a03c7ef989ea4c27b0f39dca91a76104099 && \
     mkdir -p /blaze/build && \
     cd /blaze/build && \
     cmake -DCMAKE_BUILD_TYPE=Debug -DBLAZE_SMP_THREADS=C++11 .. && \
