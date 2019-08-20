@@ -43,7 +43,6 @@ RUN git clone --depth 1 https://github.com/pybind/pybind11.git && \
 
 RUN git clone https://bitbucket.org/blaze-lib/blaze.git && \
     cd /blaze && \
-    git checkout 48460a03c7ef989ea4c27b0f39dca91a76104099 && \
     mkdir -p /blaze/build && \
     cd /blaze/build && \
     cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DBLAZE_SMP_THREADS=C++11 .. && \
