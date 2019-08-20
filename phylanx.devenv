@@ -2,9 +2,11 @@ FROM fedora
 RUN yum install -y gcc-c++ gcc make cmake git \
     bzip2 hwloc-devel blas blas-devel lapack lapack-devel boost-devel \
     libatomic which compat-openssl10 vim-enhanced wget zlib-devel \
-    python3-flake8 gdb sudo python36 openmpi-devel
+    python3-flake8 gdb sudo python36 openmpi-devel sqlite-devel sqlite
 
 ARG CPUS
+ARG BUILD_TYPE
+
 RUN ln -s /usr/lib64/openmpi/lib/libmpi_cxx.so /usr/lib64/openmpi/lib/libmpi_cxx.so.1
 RUN ln -s /usr/lib64/openmpi/lib/libmpi.so /usr/lib64/openmpi/lib/libmpi.so.12
 ENV PYVER 3.6.7
@@ -24,7 +26,7 @@ WORKDIR /
 RUN git clone https://github.com/STEllAR-GROUP/hpx.git && \
     mkdir -p /hpx/build && \
     cd /hpx/build && \
-    cmake -DCMAKE_BUILD_TYPE=Debug \
+    cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
       -DHPX_WITH_MALLOC=system \
       -DHPX_WITH_MORE_THAN_64_THREADS=ON \
       -DHPX_WITH_MAX_CPU_COUNT=80 \
@@ -36,7 +38,7 @@ RUN git clone https://github.com/STEllAR-GROUP/hpx.git && \
 RUN git clone --depth 1 https://github.com/pybind/pybind11.git && \
     mkdir -p /pybind11/build && \
     cd /pybind11/build && \
-    cmake -DCMAKE_BUILD_TYPE=Debug -DPYBIND11_PYTHON_VERSION=${PYVER} .. && \
+    cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DPYBIND11_PYTHON_VERSION=${PYVER} .. && \
     make -j ${CPUS} install 
 
 RUN git clone https://bitbucket.org/blaze-lib/blaze.git && \
@@ -44,13 +46,13 @@ RUN git clone https://bitbucket.org/blaze-lib/blaze.git && \
     git checkout 48460a03c7ef989ea4c27b0f39dca91a76104099 && \
     mkdir -p /blaze/build && \
     cd /blaze/build && \
-    cmake -DCMAKE_BUILD_TYPE=Debug -DBLAZE_SMP_THREADS=C++11 .. && \
+    cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DBLAZE_SMP_THREADS=C++11 .. && \
     make -j ${CPUS} install
 
 RUN git clone --depth 1 https://github.com/STEllAR-GROUP/blaze_tensor.git && \
     mkdir -p /blaze_tensor/build && \
     cd /blaze_tensor/build && \
-    cmake -DCMAKE_BUILD_TYPE=Debug .. && \
+    cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .. && \
     make -j ${CPUS} install 
 
 COPY build.sh /usr/local/bin/build.sh

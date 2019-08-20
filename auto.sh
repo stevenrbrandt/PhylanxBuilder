@@ -18,7 +18,7 @@ then
   export DOCKER_HUB_ACCT=$(docker info|grep Username:|cut -d: -f2|sed 's/\s//g'|sed 's|/*$|/|')
 fi
 
-export CPUS=$(($(lscpu|grep '^CPU(s):'|cut -d: -f2|sed 's/\s//g')/2))
+export CPUS=4 #$(($(lscpu|grep '^CPU(s):'|cut -d: -f2|sed 's/\s//g')/2))
 
 echo "CONFIGURATION INFO:"
 echo "EMAIL=($EMAIL)"
@@ -31,13 +31,13 @@ set -e
 set -x
 cd $INSTALL_DIR
 docker pull fedora
-docker build --no-cache --build-arg CPUS=$CPUS -f phylanx.devenv -t ${DOCKER_HUB_ACCT}phylanx.devenv .
+docker build --no-cache --build-arg CPUS=$CPUS --build-arg BUILD_TYPE=Debug -f phylanx.devenv -t ${DOCKER_HUB_ACCT}phylanx.devenv .
 
 docker build --build-arg IMAGE=${DOCKER_HUB_ACCT}phylanx.devenv -f test.docker -t phylanx-test .
 docker run --rm phylanx-test cat test-out.txt > test-out.txt
-python3 parse.py 
 echo $EMAIL > email-body-1.html
 echo 'Phylanx Build Status' >> email-body-1.html
+python3 parse.py 
 if [ $? = 0 ]
 then
   docker tag ${DOCKER_HUB_ACCT}phylanx.devenv:latest ${DOCKER_HUB_ACCT}phylanx.devenv:working
