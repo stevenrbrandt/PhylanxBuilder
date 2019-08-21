@@ -37,6 +37,8 @@ docker build --build-arg IMAGE=${DOCKER_HUB_ACCT}phylanx.devenv -f test.docker -
 docker run --rm phylanx-test cat test-out.txt > test-out.txt
 echo $EMAIL > email-body-1.html
 echo 'Phylanx Build Status' >> email-body-1.html
+rm -f email-body-1.txt
+touch email-body-1.txt
 python3 parse.py 
 if [ $? = 0 ]
 then

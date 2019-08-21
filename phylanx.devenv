@@ -23,7 +23,7 @@ RUN pip3 install numpy tensorflow keras CNTK pytest
 #RUN pip3 install CNTK
 WORKDIR /
 
-RUN git clone https://github.com/STEllAR-GROUP/hpx.git && \
+RUN git clone --depth 1 https://github.com/STEllAR-GROUP/hpx.git && \
     mkdir -p /hpx/build && \
     cd /hpx/build && \
     cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
@@ -32,27 +32,31 @@ RUN git clone https://github.com/STEllAR-GROUP/hpx.git && \
       -DHPX_WITH_MAX_CPU_COUNT=80 \
       -DHPX_WITH_EXAMPLES=Off \
       .. && \
-    make -j ${CPUS} install 
+    make -j ${CPUS} install && \
+    rm -f $(find . -name \*.o)
 
 #RUN pip3 install pytest
 RUN git clone --depth 1 https://github.com/pybind/pybind11.git && \
     mkdir -p /pybind11/build && \
     cd /pybind11/build && \
     cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DPYBIND11_PYTHON_VERSION=${PYVER} .. && \
-    make -j ${CPUS} install 
+    make -j ${CPUS} install && \
+    rm -f $(find . -name \*.o)
 
-RUN git clone https://bitbucket.org/blaze-lib/blaze.git && \
+RUN git clone --depth 1 https://bitbucket.org/blaze-lib/blaze.git && \
     cd /blaze && \
     mkdir -p /blaze/build && \
     cd /blaze/build && \
     cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DBLAZE_SMP_THREADS=C++11 .. && \
-    make -j ${CPUS} install
+    make -j ${CPUS} install && \
+    rm -f $(find . -name \*.o)
 
 RUN git clone --depth 1 https://github.com/STEllAR-GROUP/blaze_tensor.git && \
     mkdir -p /blaze_tensor/build && \
     cd /blaze_tensor/build && \
     cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .. && \
-    make -j ${CPUS} install 
+    make -j ${CPUS} install && \
+    rm -f $(find . -name \*.o)
 
 COPY build.sh /usr/local/bin/build.sh
 RUN chmod +x /usr/local/bin/build.sh
