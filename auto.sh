@@ -31,7 +31,8 @@ set -e
 set -x
 cd $INSTALL_DIR
 docker pull fedora
-docker build --no-cache --build-arg CPUS=$CPUS --build-arg BUILD_TYPE=Debug -f phylanx.devenv -t ${DOCKER_HUB_ACCT}phylanx.devenv .
+docker build --no-cache --build-arg CPUS=$CPUS --build-arg BUILD_TYPE=Debug -f apex.devenv -t ${DOCKER_HUB_ACCT}phylanx.devenv .
+#docker build --build-arg CPUS=$CPUS --build-arg BUILD_TYPE=Debug -f phylanx.devenv -t ${DOCKER_HUB_ACCT}phylanx.devenv .
 
 docker build --build-arg IMAGE=${DOCKER_HUB_ACCT}phylanx.devenv -f test.docker -t phylanx-test .
 docker run --rm phylanx-test cat test-out.txt > test-out.txt
@@ -39,6 +40,7 @@ echo $EMAIL > email-body-1.html
 echo 'Phylanx Build Status' >> email-body-1.html
 rm -f email-body-1.txt
 touch email-body-1.txt
+set +e
 python3 parse.py 
 if [ $? = 0 ]
 then

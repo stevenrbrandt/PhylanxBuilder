@@ -3,10 +3,27 @@ RUN dnf install -y gcc-c++ gcc make cmake git \
     bzip2 hwloc-devel blas blas-devel lapack lapack-devel boost-devel \
     libatomic which compat-openssl10 vim-enhanced wget zlib-devel \
     python3-flake8 gdb sudo python36 openmpi-devel sqlite-devel sqlite \
-    findutils openssl-devel
+    findutils openssl-devel papi papi-devel
 
 ARG CPUS
 ARG BUILD_TYPE
+WORKDIR /
+
+ENV AH_VER 4.6.0
+RUN curl -kLO https://www.dyninst.org/sites/default/files/downloads/harmony/ah-${AH_VER}.tar.gz
+RUN tar -xzf ah-${AH_VER}.tar.gz
+WORKDIR /activeharmony-${AH_VER}
+COPY activeharmony-4.6.0/code-server/code_generator.cxx code-server/code_generator.cxx
+RUN make CFLAGS=-fPIC LDFLAGS=-fPIC && make install prefix=/usr/local/activeharmony
+
+ENV OTF2_VER 2.1.1
+WORKDIR /
+RUN curl -kLO https://www.vi-hps.org/cms/upload/packages/otf2/otf2-${OTF2_VER}.tar.gz
+RUN tar -xzf otf2-${OTF2_VER}.tar.gz
+WORKDIR otf2-${OTF2_VER}
+RUN ./configure --prefix=/usr/local/otf2 --enable-shared && make && make install
+
+WORKDIR /
 
 RUN ln -s /usr/lib64/openmpi/lib/libmpi_cxx.so /usr/lib64/openmpi/lib/libmpi_cxx.so.1
 RUN ln -s /usr/lib64/openmpi/lib/libmpi.so /usr/lib64/openmpi/lib/libmpi.so.12
@@ -33,6 +50,15 @@ RUN git clone --depth 1 https://github.com/STEllAR-GROUP/hpx.git && \
       -DHPX_WITH_MORE_THAN_64_THREADS=ON \
       -DHPX_WITH_MAX_CPU_COUNT=80 \
       -DHPX_WITH_EXAMPLES=Off \
+      -DHPX_WITH_APEX=TRUE \
+      -DAPEX_WITH_ACTIVEHARMONY=TRUE \
+      -DACTIVEHARMONY_ROOT=/usr/local/activeharmony \
+      -DAPEX_WITH_OTF2=TRUE \
+      -DOTF2_ROOT=/usr/local/otf2 \
+      -DAPEX_WITH_PAPI=TRUE \
+      -DHPX_WITH_APEX_NO_UPDATE=TRUE \
+      -DHPX_WITH_APEX_TAG=develop \
+      -DAPEX_WITH_BFD=FALSE \
       .. && \
     make -j ${CPUS} install && \
     rm -f $(find . -name \*.o)

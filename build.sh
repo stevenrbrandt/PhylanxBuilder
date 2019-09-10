@@ -34,7 +34,7 @@ then
       -DHPX_DIR=/usr/local/lib64/cmake/HPX \
       -DPHYLANX_WITH_TESTS_UNIT=on \
       -DPYTHON_EXECUTABLE=/usr/local/bin/python3 \
-      -DPHYLANX_WITH_BLAZE_TENSOR=on \
+      -DPHYLANX_WITH_CXX17=on \
       -DPHYLANX_WITH_TOOLS=on \
       -DBlazeTensor_DIR=/blaze_tensor/build/cmake \
       ..
