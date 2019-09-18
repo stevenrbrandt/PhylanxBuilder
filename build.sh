@@ -1,6 +1,9 @@
 #!/bin/bash
 PROCS=$(lscpu | grep CPU.s.: | head -1 | cut -d: -f2)
-USE_PROCS=$(($PROCS/2))
+if [ "$USE_PROCS" = "" ]
+then
+  USE_PROCS=$(($PROCS/2))
+fi
 if [ "$1" = "config" ]
 then
     shift

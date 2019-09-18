@@ -1,6 +1,6 @@
 ARG IMAGE
 FROM $IMAGE
 COPY versions.sh .
-RUN bash versions.sh >> test-out.txt
+#RUN bash versions.sh >> test-out.txt
 COPY test.sh .
 RUN bash ./test.sh

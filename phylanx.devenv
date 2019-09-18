@@ -3,7 +3,7 @@ RUN dnf install -y gcc-c++ gcc make cmake git \
     bzip2 hwloc-devel blas blas-devel lapack lapack-devel boost-devel \
     libatomic which compat-openssl10 vim-enhanced wget zlib-devel \
     python3-flake8 gdb sudo python36 openmpi-devel sqlite-devel sqlite \
-    findutils openssl-devel
+    findutils openssl-devel lm_sensors-devel
 
 ARG CPUS
 ARG BUILD_TYPE
