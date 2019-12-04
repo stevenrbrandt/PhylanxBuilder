@@ -32,7 +32,7 @@ set -x
 cd $INSTALL_DIR
 docker pull fedora
 docker build --no-cache --build-arg CPUS=$CPUS --build-arg BUILD_TYPE=Debug -f apex.devenv -t ${DOCKER_HUB_ACCT}phylanx.devenv .
-#docker build --build-arg CPUS=$CPUS --build-arg BUILD_TYPE=Debug -f phylanx.devenv -t ${DOCKER_HUB_ACCT}phylanx.devenv .
+#docker build --build-arg CPUS=$CPUS --build-arg BUILD_TYPE=Debug -f apex.devenv -t ${DOCKER_HUB_ACCT}phylanx.devenv .
 
 docker build --build-arg IMAGE=${DOCKER_HUB_ACCT}phylanx.devenv -f test.docker -t phylanx-test .
 docker run --rm phylanx-test cat test-out.txt > test-out.txt

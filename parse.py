@@ -8,7 +8,7 @@ with open("test-out.txt","r") as fd:
       fails = int(g.group(1))
       print("Failed:",fails)
 
-if fails > 3:
+if fails > 5:
   exit(1)
 else:
   exit(0)

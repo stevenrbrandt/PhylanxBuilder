@@ -42,10 +42,12 @@ RUN pip3 install --trusted-host pypi.org --trusted-host files.pythonhosted.org n
 RUN pip3 install numpy tensorflow keras CNTK pytest
 WORKDIR /
 
+ENV PATH /usr/lib64/openmpi/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin:.
 RUN git clone --depth 1 https://github.com/STEllAR-GROUP/hpx.git && \
     mkdir -p /hpx/build && \
     cd /hpx/build && \
     cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
+      -DHPX_WITH_PARCELPORT_MPI=ON \
       -DHPX_WITH_MALLOC=system \
       -DHPX_WITH_MORE_THAN_64_THREADS=ON \
       -DHPX_WITH_MAX_CPU_COUNT=80 \
@@ -91,6 +93,7 @@ RUN chmod +x /usr/local/bin/build.sh
 RUN echo "ALL            ALL = (ALL) NOPASSWD: ALL" >> /etc/sudoers
 COPY phylanx.devenv /Dockerfile
 RUN useradd -m jovyan
+RUN ln /usr/lib64/libhwloc.so /usr/lib64/libhwloc.so.5
 USER jovyan
 WORKDIR /home/jovyan
 ENV LD_LIBRARY_PATH /home/jovyan/install/phylanx/lib64:/usr/local/lib64:/home/jovyan/install/phylanx/lib/phylanx:/usr/lib64/openmpi/lib
