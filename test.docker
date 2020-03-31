@@ -1,6 +1,20 @@
 ARG IMAGE
 FROM $IMAGE
-COPY versions.sh .
+USER root
+COPY versions.sh /usr/local/bin/
+RUN chmod 755 /usr/local/bin/versions.sh
+RUN chmod 755 /home/jovyan
+USER jovyan
 #RUN bash versions.sh >> test-out.txt
+ARG BUILD_TYPE
+ENV BUILD_TYPE=$BUILD_TYPE
+ARG CPUS
+ENV CPUS=$CPUS
 COPY test.sh .
 RUN bash ./test.sh
+USER root
+RUN find /home/jovyan -type d| xargs chmod og+rx
+RUN find /home/jovyan -type f| xargs chmod og+r
+USER jovyan
+#RUN cp /home/jovyan/install/phylanx/bin/physl /home/jovyan/phylanx/build/bin/physl
+#RUN chmod 755 /home/jovyan/phylanx/build/bin/physl

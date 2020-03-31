@@ -1,5 +1,5 @@
-FROM fedora
-RUN dnf install -y gcc-c++ gcc make cmake git \
+FROM fedora:27
+RUN dnf install -y gcc-c++ gcc make git \
     bzip2 hwloc-devel blas blas-devel lapack lapack-devel boost-devel \
     libatomic which compat-openssl10 vim-enhanced wget zlib-devel \
     python3-flake8 gdb sudo python36 openmpi-devel sqlite-devel sqlite \
@@ -7,6 +7,13 @@ RUN dnf install -y gcc-c++ gcc make cmake git \
 
 ARG CPUS
 ARG BUILD_TYPE
+WORKDIR /
+
+ENV CMAKE_VER 3.17.0
+RUN curl -LO http://www.cmake.org/files/v$(echo $CMAKE_VER|cut -d. -f1,2)/cmake-${CMAKE_VER}.tar.gz
+RUN tar xzf cmake-${CMAKE_VER}.tar.gz
+WORKDIR /cmake-${CMAKE_VER}
+RUN ./configure && make -j ${CPUS} && make install
 WORKDIR /
 
 ENV AH_VER 4.6.0
@@ -93,7 +100,7 @@ RUN chmod +x /usr/local/bin/build.sh
 RUN echo "ALL            ALL = (ALL) NOPASSWD: ALL" >> /etc/sudoers
 COPY phylanx.devenv /Dockerfile
 RUN useradd -m jovyan
-RUN ln /usr/lib64/libhwloc.so /usr/lib64/libhwloc.so.5
+#RUN ln /usr/lib64/libhwloc.so /usr/lib64/libhwloc.so.5
 USER jovyan
 WORKDIR /home/jovyan
 ENV LD_LIBRARY_PATH /home/jovyan/install/phylanx/lib64:/usr/local/lib64:/home/jovyan/install/phylanx/lib/phylanx:/usr/lib64/openmpi/lib

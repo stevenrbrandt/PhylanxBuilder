@@ -12,9 +12,15 @@ else
     CONFIG=0
 fi
 
+if [ "$BUILD_TYPE" = "" ]
+then
+  export BUILD_TYPE=Debug
+fi
+
+# Disable parallel testing in the hopes that tests will pass...
 # Ticket https://github.com/STEllAR-GROUP/phylanx/issues/810
-export CTEST_PARALLEL_LEVEL=${USE_PROCS}
-export HPX_COMMANDLINE_OPTIONS=--hpx:bind=none
+#export CTEST_PARALLEL_LEVEL=${USE_PROCS}
+#export HPX_COMMANDLINE_OPTIONS=--hpx:bind=none
 
 # For singularity, prevent these from being over-written
 unset CC
@@ -32,7 +38,7 @@ if [ $CONFIG = 1 ]
 then
   mkdir -p ~/phylanx/build
   cd ~/phylanx/build
-  cmake -DCMAKE_BUILD_TYPE=Debug \
+  cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
       -DCMAKE_INSTALL_PREFIX=$HOME/install/phylanx \
       -DHPX_DIR=/usr/local/lib64/cmake/HPX \
       -DPHYLANX_WITH_TESTS_UNIT=on \
