@@ -11,7 +11,7 @@ else
   echo "git config --global user.email johndoe@example.com"
   exit 2
 fi
-export BUILD_TYPE=Debug
+export BUILD_TYPE=Release
 
 # Here we want the dockerhub account with a / or an empty string.
 if [ "$DOCKER_HUB_ACCT" = "" ]

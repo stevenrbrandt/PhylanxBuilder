@@ -1,4 +1,4 @@
-FROM fedora:27
+FROM fedora:26
 RUN dnf install -y gcc-c++ gcc make git \
     bzip2 hwloc-devel blas blas-devel lapack lapack-devel boost-devel \
     libatomic which compat-openssl10 vim-enhanced wget zlib-devel \
@@ -99,7 +99,7 @@ RUN chmod +x /usr/local/bin/build.sh
 
 RUN echo "ALL            ALL = (ALL) NOPASSWD: ALL" >> /etc/sudoers
 COPY phylanx.devenv /Dockerfile
-RUN useradd -m jovyan
+RUN useradd -m jovyan -d /home/jovyan
 #RUN ln /usr/lib64/libhwloc.so /usr/lib64/libhwloc.so.5
 USER jovyan
 WORKDIR /home/jovyan
