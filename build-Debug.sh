@@ -84,7 +84,7 @@ then
       -DPHYLANX_WITH_CXX17=on \
       -DPHYLANX_WITH_TOOLS=on \
       -DBlazeTensor_DIR=/blaze_tensor/build/cmake \
-      ..
+      $CHECKOUT_DIR/phylanx
 fi
 cd $BUILD_DIR
 make -j $USE_PROCS $* 2>&1 | tee make.out

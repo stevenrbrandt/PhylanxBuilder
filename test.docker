@@ -4,6 +4,12 @@ USER root
 COPY versions.sh /usr/local/bin/
 RUN chmod 755 /usr/local/bin/versions.sh
 RUN chmod 755 /home/jovyan
+RUN mkdir /usr/local/phylanx
+RUN mkdir /usr/local/userbase
+RUN mkdir /usr/local/build
+RUN chown jovyan /usr/local/phylanx
+RUN chown jovyan /usr/local/userbase
+RUN chown jovyan /usr/local/build
 USER jovyan
 #RUN bash versions.sh >> test-out.txt
 ARG BUILD_TYPE
