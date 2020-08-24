@@ -70,6 +70,7 @@ RUN git clone --depth 1 https://github.com/STEllAR-GROUP/hpx.git && \
       -DACTIVEHARMONY_ROOT=/usr/local/activeharmony \
       -DAPEX_WITH_OTF2=TRUE \
       -DOTF2_ROOT=/usr/local/otf2 \
+      -DAPEX_USE_CLOCK_TIMESTAMP=TRUE \
       -DAPEX_WITH_PAPI=TRUE \
       -DHPX_WITH_APEX_NO_UPDATE=TRUE \
       -DHPX_WITH_APEX_TAG=develop \
