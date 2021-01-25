@@ -1,9 +1,10 @@
 FROM fedora:26
 RUN dnf install -y gcc-c++ gcc make git \
-    bzip2 hwloc-devel blas blas-devel lapack lapack-devel boost-devel \
+    bzip2 hwloc-devel blas blas-devel lapack lapack-devel \
     libatomic which compat-openssl10 vim-enhanced wget zlib-devel \
-    python3-flake8 gdb sudo python36 openmpi-devel sqlite-devel sqlite \
-    findutils openssl-devel papi papi-devel lm_sensors-devel hdf5-devel
+    python3-flake8 gdb sudo python36 mpich-devel sqlite-devel sqlite \
+    findutils openssl-devel papi papi-devel lm_sensors-devel hdf5-devel \
+    libffi-devel
 
 ARG CPUS
 ARG BUILD_TYPE
@@ -14,6 +15,16 @@ RUN curl -LO http://www.cmake.org/files/v$(echo $CMAKE_VER|cut -d. -f1,2)/cmake-
 RUN tar xzf cmake-${CMAKE_VER}.tar.gz
 WORKDIR /cmake-${CMAKE_VER}
 RUN ./configure && make -j ${CPUS} && make install
+WORKDIR /
+
+ENV BOOST_VER 1_74_0
+WORKDIR /usr/install
+COPY boost_${BOOST_VER}.tar.bz2 .
+RUN tar xjf boost_${BOOST_VER}.tar.bz2
+WORKDIR /usr/install/boost_${BOOST_VER}
+ENV CPLUS_INCLUDE_PATH /usr/include/python3.5m
+RUN bash ./bootstrap.sh
+RUN ./b2 -j 5 install
 WORKDIR /
 
 RUN git clone https://github.com/BlueBrain/HighFive.git
@@ -38,9 +49,9 @@ RUN ./configure --prefix=/usr/local/otf2 --enable-shared && make && make install
 
 WORKDIR /
 
-RUN ln -s /usr/lib64/openmpi/lib/libmpi_cxx.so /usr/lib64/openmpi/lib/libmpi_cxx.so.1
-RUN ln -s /usr/lib64/openmpi/lib/libmpi.so /usr/lib64/openmpi/lib/libmpi.so.12
-ENV PYVER 3.6.8
+#RUN ln -s /usr/lib64/openmpi/lib/libmpi_cxx.so /usr/lib64/openmpi/lib/libmpi_cxx.so.1
+#RUN ln -s /usr/lib64/openmpi/lib/libmpi.so /usr/lib64/openmpi/lib/libmpi.so.12
+ENV PYVER 3.8.6
 RUN wget https://www.python.org/ftp/python/${PYVER}/Python-${PYVER}.tgz
 RUN tar xf Python-${PYVER}.tgz
 WORKDIR /Python-${PYVER}
@@ -51,11 +62,11 @@ RUN make -j ${CPUS} install
 RUN cp /Python-${PYVER}/pyconfig.h /Python-${PYVER}/Include
 RUN ln -s /Python-${PYVER}/Include /usr/include/python${PYVER}
 
-RUN pip3 install --trusted-host pypi.org --trusted-host files.pythonhosted.org numpy tensorflow keras CNTK pytest
-RUN pip3 install numpy tensorflow keras CNTK pytest
+#RUN pip3 install --trusted-host pypi.org --trusted-host files.pythonhosted.org numpy tensorflow keras pytest
+RUN pip3 install numpy tensorflow keras pytest
 WORKDIR /
 
-ENV PATH /usr/lib64/openmpi/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin:.
+ENV PATH /usr/lib64/mpich/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin:.
 RUN git clone --depth 1 https://github.com/STEllAR-GROUP/hpx.git && \
     mkdir -p /hpx/build && \
     cd /hpx/build && \
@@ -110,6 +121,6 @@ RUN useradd -m jovyan -d /home/jovyan
 #RUN ln /usr/lib64/libhwloc.so /usr/lib64/libhwloc.so.5
 USER jovyan
 WORKDIR /home/jovyan
-ENV LD_LIBRARY_PATH /home/jovyan/install/phylanx/lib64:/usr/local/lib64:/home/jovyan/install/phylanx/lib/phylanx:/usr/lib64/openmpi/lib
+ENV LD_LIBRARY_PATH /home/jovyan/install/phylanx/lib64:/usr/local/lib64:/home/jovyan/install/phylanx/lib/phylanx:/usr/lib64/mpich/lib
 COPY bash.sh /home/jovyan/.bashrc
 CMD ["sleep","infinity"]

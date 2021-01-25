@@ -40,7 +40,12 @@ fi
 cd $CHECKOUT_DIR
 if [ ! -d phylanx ]
 then
-  git clone https://github.com/STEllAR-GROUP/phylanx.git
+  if [ "$BRANCH" = "" ]
+  then
+    git clone https://github.com/STEllAR-GROUP/phylanx.git
+  else
+    git clone -b $BRANCH https://github.com/STEllAR-GROUP/phylanx.git
+  fi
 fi
 
 if [ "$BUILD_DIR" = "" ]

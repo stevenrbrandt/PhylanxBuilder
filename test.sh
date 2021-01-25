@@ -5,6 +5,7 @@ set -x
 export BUILD_DIR=/usr/local/build
 export INSTALL_DIR=/usr/local/phylanx
 export PYTHONUSERBASE=/usr/local/userbase
+#export BRANCH=distributed_performance
 
 # I don't understand why this is necessary
 export PYTHON_DIR=$(python3 -c 'import sys; print("/usr/local/userbase/lib/python%d.%d/site-packages" % (sys.version_info.major, sys.version_info.minor))')
