@@ -4,7 +4,7 @@ RUN dnf install -y gcc-c++ gcc make git \
     libatomic which compat-openssl10 vim-enhanced wget zlib-devel \
     python3-flake8 gdb sudo python36 mpich-devel sqlite-devel sqlite \
     findutils openssl-devel papi papi-devel lm_sensors-devel hdf5-devel \
-    libffi-devel
+    libffi-devel file hostname
 
 ARG CPUS
 ARG BUILD_TYPE
