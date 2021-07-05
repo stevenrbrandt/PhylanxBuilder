@@ -1,0 +1,204 @@
+# Copyright (c) 2020 Steven R. Brandt (@stevenrbrandt)
+# Copyright (c) 2020 R. Tohid (@rtohid)
+#
+# Distributed under the Boost Software License, Version 1.0. (See a copy at
+# http://www.boost.org/LICENSE_1_0.txt)
+
+FROM ubuntu
+
+ENV CC clang-8
+ENV CXX clang++-8
+ENV OTF2_VER 2.1.1
+ENV LC_ALL en_US.utf8
+ENV DEBIAN_FRONTEND noninteractive
+ENV PATH /usr/cli/bin:/home/stellar/git/traveler-integrated/notebook/agave-cli/bin:/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/otf2/bin/
+
+RUN apt update
+RUN apt install -y sudo
+
+# OS Packages
+RUN apt install -y git vim
+RUN apt install -y wget curl
+RUN apt install -y build-essential
+RUN apt install -y bash-completion
+RUN apt install -y cmake automake autoconf libtool lld
+
+RUN apt install -y llvm-8 llvm-8-dev clang-8
+RUN apt install -y python3.8 python3.8-dev python3.8-distutils
+
+RUN apt install -y libblas-dev liblapack-dev
+RUN apt install -y libpng-dev libjpeg-dev
+RUN apt install -y zlib1g-dev libz-dev
+RUN apt install -y libboost-all-dev
+RUN apt install -y libsqlite-dev
+RUN apt install -y libhwloc-dev
+RUN apt install -y graphviz-dev
+RUN apt install -y libpapi-dev
+RUN apt install -y libhdf5-dev
+RUN apt install -y libffi-dev
+RUN apt install -y jq
+
+## MPI
+RUN apt install -y openmpi-bin openmpi-common libopenmpi-dev # libopenmpi-dbg
+RUN apt install -y openssh-client openssh-server
+
+WORKDIR /tmp/
+RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+RUN python3.8 get-pip.py
+RUN python3.8 -m pip install --upgrade pip
+
+# install python packages
+RUN python3.8 -m pip install pytest pylint yapf flake8
+RUN python3.8 -m pip install astpretty
+RUN python3.8 -m pip install pybind11
+RUN python3.8 -m pip install numpy
+RUN python3.8 -m pip install jupyter
+
+
+WORKDIR /home/stellar/git
+RUN git clone -b physl_2019 --single-branch https://github.com/ct-clmsn/tiramisu.git
+
+WORKDIR /home/stellar/git/tiramisu/
+RUN sed -i 's/llvm-config/llvm-config-8/g' CMakeLists.txt
+RUN sed -i 's/clang++/clang++-8/g' CMakeLists.txt
+
+# ISL
+WORKDIR /home/stellar/git/tiramisu/3rdParty/isl/build
+WORKDIR /home/stellar/git/tiramisu/3rdParty/isl/
+
+RUN autoreconf -f -i
+RUN ./configure --prefix=$PWD/build/ --with-int=imath
+RUN make -j
+RUN make -j install
+
+# Tiramisu
+WORKDIR /home/stellar/git/tiramisu/build
+RUN cmake -DUSE_HALIDE=OFF -DCMAKE_C_COMPILER=clang-8 -DCMAKE_CXX_COMPILER=clang++-8 ..
+RUN make -j  tiramisu
+
+# pytiramisu
+WORKDIR /home/stellar/git
+RUN git clone -b backend --single-branch https://github.com/ct-clmsn/phyflow.git
+
+WORKDIR /home/stellar/git/phyflow/backend
+RUN ln -s /home/stellar/git/tiramisu/build/libtiramisu.so .
+RUN HOME=/home/stellar make CXX=clang++-8 ISL_ROOT_DIR=/home/stellar/git/tiramisu/3rdParty/isl/ ISL_LIB_DIR=/home/stellar/git/tiramisu/3rdParty/isl/build/lib
+
+# phyfleaux
+WORKDIR /home/stellar/git
+RUN git clone https://github.com/STEllAR-GROUP/phyfleaux.git
+
+# active harmony
+WORKDIR /home/stellar/git/
+RUN git clone -n https://github.com/ActiveHarmony/harmony.git
+WORKDIR /home/stellar/git/harmony
+RUN git checkout 1c7536abc3035e864adeb076e147dd2d22b56e81
+RUN make CFLAGS=-fPIC LDFLAGS=-fPIC 
+RUN make -j install
+
+# otf2
+WORKDIR /home/stellar/git
+RUN curl -kLO https://www.vi-hps.org/cms/upload/packages/otf2/otf2-${OTF2_VER}.tar.gz
+RUN tar -xzf otf2-${OTF2_VER}.tar.gz
+WORKDIR /home/stellar/git/otf2-${OTF2_VER}
+RUN ./configure --enable-shared && make && make install
+
+# tau
+WORKDIR /home/stellar/git
+RUN wget http://www.cs.uoregon.edu/research/paracomp/tau/tauprofile/dist/tau_latest.tar.gz
+RUN tar -xvzf tau_latest.tar.gz
+WORKDIR /home/stellar/git/tau-2.29.1
+RUN ./configure -pthread -mpi
+RUN make -j install
+
+# HPX + APEX
+WORKDIR /home/stellar/git
+RUN git clone --depth 1 https://github.com/STEllAR-GROUP/hpx.git 
+WORKDIR /home/stellar/git/hpx/build
+RUN cmake -DCMAKE_BUILD_TYPE=Debug \
+  -DHPX_WITH_PARCELPORT_MPI=ON \
+  -DHPX_WITH_MALLOC=system \
+  -DHPX_WITH_MORE_THAN_64_THREADS=ON \
+  -DHPX_WITH_MAX_CPU_COUNT=80 \
+  -DHPX_WITH_EXAMPLES=OFF \
+  -DHPX_WITH_APEX=TRUE \
+  -DAPEX_WITH_ACTIVEHARMONY=TRUE \
+  -DACTIVEHARMONY_ROOT=/home/stellar/git/harmony \
+  -DAPEX_WITH_OTF2=TRUE \
+  -DOTF2_ROOT=/opt/otf2 \
+  -DAPEX_WITH_PAPI=TRUE \
+  -DHPX_WITH_APEX_NO_UPDATE=TRUE \
+  -DHPX_WITH_APEX_TAG=develop \
+  -DAPEX_WITH_BFD=FALSE \
+  .. && \
+  make -j install
+
+# pybind11
+WORKDIR /home/stellar/git
+RUN git clone --depth 1 https://github.com/pybind/pybind11.git
+WORKDIR /home/stellar/git/pybind11/build
+RUN cmake -DCMAKE_BUILD_TYPE=Debug \
+  .. && \
+  sudo make -j install 
+
+# blaze
+WORKDIR /home/stellar/git
+RUN git clone --depth 1 https://bitbucket.org/blaze-lib/blaze.git
+WORKDIR /home/stellar/git/blaze/build
+RUN cmake -DCMAKE_BUILD_TYPE=Debug .. && \
+  sudo make -j install
+
+# balze_tensor
+WORKDIR /home/stellar/git
+RUN git clone --depth 1 https://github.com/STEllAR-GROUP/blaze_tensor.git
+WORKDIR /home/stellar/git/blaze_tensor/build
+RUN cmake -DCMAKE_BUILD_TYPE=Debug .. && \
+  sudo make -j install
+
+# tapis
+WORKDIR /home/stellar/git
+RUN git clone https://github.com/TACC-Cloud/tapis-cli-ng
+WORKDIR /home/stellar/git/tapis-cli-ng
+RUN ln -s /home/stellar/git/tapis-cli-ng /usr/cli
+
+# Phylanx
+WORKDIR /home/stellar/git
+RUN git clone --depth 1 https://github.com/STEllAR-GROUP/phylanx.git 
+WORKDIR /home/stellar/git/phylanx/build
+RUN cmake -DCMAKE_BUILD_TYPE=Debug \
+  -DHPX_DIR=/usr/local/lib/cmake/HPX \
+  -DCMAKE_CXX_COMPILER=clang++-8 \
+  -DPHYLANX_WITH_HIGHFIVE=On \
+  -DPHYLANX_WITH_CXX17=on \
+  -DPHYLANX_WITH_TOOLS=on \
+  .. && \
+  make install
+
+# oh my bash
+WORKDIR /tmp/
+RUN sh -c "$(wget https://raw.githubusercontent.com/ohmybash/oh-my-bash/master/tools/install.sh -O -)"
+RUN sed -i 's/OSH_THEME="font"/OSH_THEME="mairan"/g' ~/.bashrc
+
+# includes
+RUN echo "export LD_INCLUDE_PATH=\$LD_INCLUDE_PATH:/home/stellar/git/harmony/include" >> ~/.bashrc
+
+# libraries
+RUN echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/home/stellar/git/harmony/lib" >> ~/.bashrc
+RUN echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/home/stellar/git/phyflow/backend:/home/stellar/git/tiramisu/3rdParty/isl/build/lib" >> /home/stellar/.bashrc
+
+# paths
+RUN echo "export PATH=\$PATH:/home/stellar/git/harmony/bin" >> ~/.bashrc
+RUN echo "export PYTHONPATH=/home/stellar/git/phyflow/backend" >> /home/stellar/.bashrc
+RUN echo "export PYTHONPATH=\$PYTHONPATH:/home/stellar/git/phyfleaux/" >> /home/stellar/.bashrc
+
+
+
+# add user
+RUN adduser --disabled-password --gecos '' stellar
+RUN adduser stellar sudo
+RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+USER stellar
+RUN sudo chown -R stellar:stellar /home/stellar
+
+
+WORKDIR /home/stellar/git
